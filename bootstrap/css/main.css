@@ -1,8 +1,7 @@
-
-
 /* ==========================================================================
    Author's custom styles
    ========================================================================== */
+
 
 /*.seccion{
         width: 100%;
@@ -12,94 +11,110 @@
         background: #234312;
 }*/
 
+
 /*.divisor{
         background-color: red;
         width: 100%;
         height: 30px;
 }*/
-.txtcarusel{
+
+.txtcarusel {
     color: white;
     font-size: 30px;
     vertical-align: center;
 }
 
-.txttitlecarusel{
+.txttitlecarusel {
     color: white;
     font-size: 35px;
 }
 
-.titulo{
+.titulo {
     color: white;
     font-size: 35px;
     vertical-align: center;
 }
 
-h1,h2,h3,h4,p{
+h1,
+h2,
+h3,
+h4,
+p {
     color: black;
 }
-h1{
+
+h1 {
     padding-left: 15px;
 }
-body{
+
+body {
     /*background-image: url('../img/img.jpg');*/
     background-color: black;
 }
 
-.txt{
+.txt {
     font-size: 29px;
 }
+
+
 /*.fondo{
         width: 100%;
         z-index:-1;
 }*/
 
-.bienvenidaAUsuario{
+.bienvenidaAUsuario {
     padding-top: 15px;
     padding-bottom: 15px;
     color: white;
 }
 
-
-.inicio{
+.inicio {
     background: white;
 }
-#servicios{
+
+#servicios {
     /*background-image: url('../img/img2.jpg');*/
     background-color: white;
 }
-#informacion{
+
+#informacion {
     /*background-image: url('../img/img3.jpg');*/
     background-color: white;
 }
-#contacto{
+
+#contacto {
     /*background-image: url('../img/img1.jpg');*/
     background-color: white;
 }
-#ingresar{
+
+#ingresar {
     /*background-image: url('../img/img2.jpg');*/
     background-color: white;
 }
-#registrarse{
+
+#registrarse {
     /*background-image: url('../img/img3.jpg');*/
     background-color: white;
 }
 
-.imgcarousel{
+.imgcarousel {
     width: 100%;
     max-height: 480px;
 }
-.imgcarouseluser{
+
+.imgcarouseluser {
     width: 90%;
     max-height: 200px;
 }
 
-.banner_delgado{
+.banner_delgado {
     background-color: #A4A4A4;
     width: 100%;
     height: 3px;
     margin-top: 40px;
     margin-bottom: 40px;
 }
+
 
 /*
 #map{
@@ -118,21 +133,109 @@ html, body{
         margin:0px;
 }*/
 
-html, body, div#contenedor{
+
+/*contenedor*/
+
+#contenedor {
+    /*background-color: #F1F1F1;*/
+    background-color: #000000;
+}
+
+html,
+body,
+div#contenedor {
     width: 100%;
     height: 100%;
     margin: 0;
     padding: 0;
 }
-#map{
+
+#map {
     height: 80%;
     width: 100%;
 }
 
-#map{
+#map {
     position: relative;
 }
 
+#banner {
+    background-color: #FFFFFF;
+    height: 50px;
+    padding-bottom: -5px;
+    padding-tpo: -5px;
+}
 
+#cabecera {
+    background-color: #FAFAFA;
+    font-weight: bold;
+    font-size: 110%;
+    height: 25%;
+    padding: 3px;
+    margin-bottom: -40px;
+}
 
+.text-center {
+    text-align: center;
+    color: white
+}
 
+.titulo_inicio {
+    font-family: "palatino linotype", palatino, serif;
+    color: #A6A6A6;
+    font-size: 40px;
+    word-spacing: 3.4pt;
+}
+
+.derecha {
+    float: right;
+}
+
+.centro {
+    margin: 0 auto;
+}
+
+.izquierda {
+    float: left;
+}
+
+.clearfix {
+    overflow: auto;
+    zoom: 1;
+}
+
+.campo_elementos {
+    width: 100%;
+    /*50% of the line-height in a*/
+    text-align: center;
+}
+
+.un_elemento {
+    display: inline-block;
+    list-style: none;
+    margin-left: 20%;
+}
+
+.un_elemento:first-child {
+    margin-left: 0;
+}
+
+.form-group {
+    padding-bottom: 5px;
+}
+
+#seleccion_multiple {
+    float: right;
+    margin-top: -8%;
+}
+
+.btn_salir {
+    float: right;
+    margin-top: -35px
+}
+
+.btn_actualizar {
+    float: right;
+    /*margin-right: 250px;*/
+    margin-top: -35px
+}
