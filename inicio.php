@@ -1,6 +1,7 @@
 <?php
 require_once('login.php');
 require_once("querys.php");
+require_once('conexion.php');
 session_start();
 if (!isset($_SESSION['nombre'])) {
     die('<body style="background-color:black; height:100%">
@@ -12,10 +13,10 @@ if (!isset($_SESSION['nombre'])) {
             <img src="bootstrap/img/access-denied.png" style="width:100%;height:90%;">
         </body>');
 } else {
-    $coordenadas = coordenadas();
+//    $coordenadas = coordenadas();
     $ejecucion = new Bd();
     //    echo "<p style=' color:green'>";
-    $gpsDeusuario = $ejecucion->consultarGpsDeUsuario(1);
+    $gpsDeusuario = $ejecucion->consultarGpsDeUsuario($_SESSION['usuario_id']);
 
     //    foreach ($array as $indice => $valor) {
     //        echo "$indice | ";
@@ -28,7 +29,8 @@ if (!isset($_SESSION['nombre'])) {
     //    }
     //    echo "</p>";
 }
-
+$coordenadasAll = array();
+$gpsSeleccionados = array();
 if (isset($_POST['actualizar'])) {
     echo "<div style='color:white'>";
     if (isset($_POST['tiempo_inicial'])) {
@@ -43,12 +45,37 @@ if (isset($_POST['actualizar'])) {
 //        echo "cantidad: " . count($_POST['gps']);
         $ejecucion = new Bd();
         foreach ($_POST['gps'] as $indice => $valor) {
+            array_push($gpsSeleccionados, $valor);
 //            echo " indice:" . $indice . " valor:" . $valor . " ";
-            $coordenadas = $ejecucion->consutarCoordenadasUusarioGps($valor);
+            $coordenadas = $ejecucion->consutarCoordenadasUsarioGps($valor);
+            array_push($coordenadasAll, $coordenadas);
         }
     }
-
-    var_dump($coordenadas);
+    //$coordenadasAll = json_encode($coordenadasAll);
+//    var_dump($coordenadasAll);
+//    Borrar
+//    $contadorDispositivos = 0;
+//    while ($contadorDispositivos < count($coordenadasAll)) {
+//        $contador = 0;
+//        while ($contador < count($coordenadasAll[$contadorDispositivos])) {
+//            $lon = $coordenadasAll[$contadorDispositivos][$contador]["lng"];
+//            $lat = $coordenadasAll[$contadorDispositivos][$contador]["lat"];
+//            if ($contador == 0) {
+//                echo ("Inicio: lat: $lat, long: $lon");
+//            } else if ($contador == (count($coordenadas) - 1)) {
+//                echo ("Fin: lat: $lat, long: $lon");
+//            } else {
+//                echo ("Intermedio: lat: $lat, long: $lon");
+//            }
+//            $contador++;
+//        }
+//        echo "*************************";
+//        $aux = json_encode($coordenadas);
+//        echo ("var arrayJS = $aux;" );
+//            echo ("metLineas(arrayJS);" );
+//    $contadorDispositivos++;
+//    }
+//    finborrar
 
     echo "</div>";
 //    foreach ($_POST['gps'] as $indice => $valor) {
@@ -183,7 +210,9 @@ href="http://browsehappy.com/">upgrade your browser</a> to improve your experien
                         <li class="un_elemento">
                             <div>
                                 <label for="Contrase_na">
-                                    <?php echo $_SESSION['nombre']; ?>
+                                    <?php
+                                    echo $_SESSION['nombre'];
+                                    ?>
                                 </label>
                             </div>
                         </li>
@@ -201,7 +230,6 @@ href="http://browsehappy.com/">upgrade your browser</a> to improve your experien
                 <!-- Tiempo -->
 
                 <form action="inicio.php" method="POST" name="filtros" class="form-horizontal">
-                    no babad
                     <!--<fieldset>-->
                     <div class="row">
                         <div class="col-md-5">
@@ -245,6 +273,8 @@ href="http://browsehappy.com/">upgrade your browser</a> to improve your experien
                                 <br/>
                             </div>
                         </div>
+                        <div id="distincion" style="font-size:11px;"></div>
+
 
                         <div class="col-md-5" id="seleccion_multiple">
                             <!-- <div class="control-group "> -->
@@ -254,8 +284,27 @@ href="http://browsehappy.com/">upgrade your browser</a> to improve your experien
                                 <select name="gps[]" multiple="multiple" placeholder="Puede seleccionar varios" onchange="console.log($(this).children(':selected').length)" class="testSelAll" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;color:#444;font-size:13px;">
 
                                     <?php
-                                    foreach ($gpsDeusuario as $indice => $valor) {
-                                        echo "<option selected value=" . $valor['enlace_id'] . ">" . $valor['descripcion'] . "</option>";
+                                    if (isset($gpsSeleccionados) && count($gpsSeleccionados) > 0) {
+                                        $banderaGpsSeleccionado = false;
+                                        foreach ($gpsDeusuario as $indice => $valor) {
+                                            foreach ($gpsSeleccionados as $valorGpsSeleccionados) {
+                                                if ($valor['enlace_id'] == $valorGpsSeleccionados) {
+                                                    $banderaGpsSeleccionado = true;
+                                                    break;
+                                                } else {
+                                                    $banderaGpsSeleccionado = false;
+                                                }
+                                            }
+                                            if ($banderaGpsSeleccionado) {
+                                                echo "<option selected value=" . $valor['enlace_id'] . ">" . $valor['descripcion'] . "</option>";
+                                            } else {
+                                                echo "<option  value=" . $valor['enlace_id'] . ">" . $valor['descripcion'] . "</option>";
+                                            }
+                                        }
+                                    } else {
+                                        foreach ($gpsDeusuario as $indice => $valor) {
+                                            echo "<option  value=" . $valor['enlace_id'] . ">" . $valor['descripcion'] . "</option>";
+                                        }
                                     }
                                     ?>
                                 </select>
@@ -292,18 +341,85 @@ href="http://browsehappy.com/">upgrade your browser</a> to improve your experien
         <!-- var lo= parseFloat('<?php echo $lon; ?>'); -->
 
         <script>
+            var center = null;
+            var map = null;
+            var currentPopup;
+            var bounds = new google.maps.LatLngBounds();
+            function metLineas(datosRuta, color) {
+                var coordenadas = new Array();
+                var s = "";
+                for (var i = 0; i < datosRuta.length; i++) {
+                    coordenadas.push(new google.maps.LatLng(datosRuta[i]["lat"], datosRuta[i]["lng"]));
+//                    s += datosRuta[i]["lat"] + " | " + datosRuta[i]["lng"] + "\n";
+                }
+                var lineas = new google.maps.Polyline({
+                    path: coordenadas,
+                    map: map,
+//                    strokeColor: '#BB2000',
+                    strokeColor: color,
+                    strokeWeight: 4,
+                    strokeOpacity: 0.6,
+                    clickable: false
+                });
+//                alert(s);
+            }
+
+
+            function addMarker(lat, lng, info, icono) {
+                var pt = new google.maps.LatLng(lat, lng);
+//                bounds.extend(pt);
+
+                if (icono == null || icono == "") {
+                    var marker = new google.maps.Marker({
+                        position: pt,
+                        map: map,
+                        title: 'tooltip'
+                    });
+                } else {
+                    var marker = new google.maps.Marker({
+                        position: pt,
+//                    icon: 'bootstrap/img/icono_ubicaciones.png',
+                        icon: 'bootstrap/img/' + icono + '.png',
+                        map: map,
+                        title: 'click para ver informacion'
+                    });
+                }
+
+                var popup = new google.maps.InfoWindow({
+                    content: info,
+                    maxWidth: 300
+                });
+                google.maps.event.addListener(marker, "click", function () {
+                    if (currentPopup != null) {
+                        currentPopup.close();
+                        currentPopup = null;
+                    }
+                    popup.open(map, marker);
+                    currentPopup = popup;
+                });
+                google.maps.event.addListener(popup, "closeclick", function () {
+                    map.panTo(center);
+                    currentPopup = null;
+                });
+            }
+
             function initialize() {
-                // var myOptions = {
-                //     center: new google.maps.LatLng(13.570648483963033, 101.44157409667969),
-                //     zoom: 8,
-                //     mapTypeId: google.maps.MapTypeId.ROADMAP
-                // };
-                var map = new google.maps.Map(document.getElementById('map'), {
+
+                map = new google.maps.Map(document.getElementById('map'), {
                     center: {
-                        lat: -34.397,
-                        lng: 150.644
+                        lat: 17.553893,
+                        lng: -99.52511
                     },
-                    zoom: 15
+                    zoom: 15,
+                    mapTypeId: google.maps.MapTypeId.ROADMAP,
+                    mapTypeControl: false,
+                    mapTypeControlOptions: {
+                        style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR
+                    },
+                    navigationControl: true,
+                    navigationControlOptions: {
+                        style: google.maps.NavigationControlStyle.SMALL
+                    }
                 });
                 var infoWindow = new google.maps.InfoWindow({
                     map: map
@@ -316,7 +432,7 @@ href="http://browsehappy.com/">upgrade your browser</a> to improve your experien
                             lng: position.coords.longitude
                         };
                         infoWindow.setPosition(pos);
-                        infoWindow.setContent('Location Actual');
+                        infoWindow.setContent('Localizacion Actual');
                         map.setCenter(pos);
                     }, function () {
                         handleLocationError(true, infoWindow, map.getCenter());
@@ -325,126 +441,72 @@ href="http://browsehappy.com/">upgrade your browser</a> to improve your experien
                     // Browser doesn't support Geolocation
                     handleLocationError(false, infoWindow, map.getCenter());
                 }
-                //var ruta = [         new google.maps.LatLng(13.6203, 101.09),         new google.maps.LatLng(14.6203, 101.29),         new google.maps.LatLng(15.0203, 102.09)     ];
-                var ruta = [
-                    {
-                        lat: 17.55658657,
-                        lng: -99.52336385
-                    },
-                    {
-                        lat: 17.554405,
-                        lng: -99.511949
-                    },
-                    {
-                        lat: 17.561514,
-                        lng: -99.513605
-                    },
-                    {
-                        lat: 17.563806,
-                        lng: -99.50144
-                    },
-                    {
-                        lat: 17.557831,
-                        lng: -99.496432
-                    },
-                    {
-                        lat: 17.550712,
-                        lng: -99.491649
-                    }
-                ];
-                var ruta2 = [
-                    {
-                        lat: 17.55658657,
-                        lng: -99.52336385
-                    },
-                    {
-                        lat: 17.554405,
-                        lng: -99.511949
-                    }
-                ];
+<?php
+//if (isset($coordenadas)) {
+//    if (count($coordenadas) > 0) {
+//        $contador = 0;
+//        while ($contador < count($coordenadas)) {
+//            $lon = $coordenadas[$contador]["lng"];
+//            $lat = $coordenadas[$contador]["lat"];
+//            if ($contador == 0) {
+//                echo ("addMarker($lat, $lon,'Inicio','icono_ubicaciones_inicio');");
+//            } else if ($contador == (count($coordenadas) - 1)) {
+//                echo ("addMarker($lat, $lon,'Fin','icono_ubicaciones_fin');");
+//            } else {
+//                echo ("addMarker($lat, $lon,'X','icono_ubicaciones');");
+//            }
+//            $contador++;
+//        }
+//        $aux = json_encode($coordenadas);
+//        echo ("var arrayJS = $aux;" );
+//        echo ("metLineas(arrayJS);" );
+//    }
+//}
 
-                var marcadores = [
-                    ['Informacion', 17.55658657, -99.52336385],
-                    ['Informacion', 17.554405, -99.511949],
-                    ['Informacion', 17.561514, -99.513605],
-                    ['Informacion', 17.563806, -99.50144],
-                    ['Informacion', 17.557831, -99.496432],
-                    ['Informacion', 17.550712, -99.491649]
-                ];
-                var lineas = new google.maps.Polyline({
-                    path: ruta,
-                    map: map,
-                    strokeColor: '#222000',
-                    strokeWeight: 4,
-                    strokeOpacity: 0.6,
-                    clickable: false
-                });
+if (isset($coordenadasAll)) {
+    if (count($coordenadasAll) > 0) {
 
-                metLineas(map, ruta2);
-//                var lineas = new google.maps.Polyline({
-//                    path: ruta2,
-//                    map: map,
-//                    strokeColor: '#BB2000',
-//                    strokeWeight: 4,
-//                    strokeOpacity: 0.6,
-//                    clickable: false
-//                });
+        $colorRand = array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F');
 
-                //var map = new google.maps.Map(document.getElementById("map_canvas"),             myOptions);
-                gozilla3 = new google.maps.Marker({
-                    //position: new google.maps.LatLng(13.6203, 101.09),
-                    position: new google.maps.LatLng(17.550712, -99.491649),
-                    //position: ruta,
-                    icon: 'bootstrap/img/icono_gps.png',
-                    map: map,
-                    title: 'GodZZilla!!'
-                });
-
-                var infowindow = new google.maps.InfoWindow();
-                var marker, i;
-                for (i = 0; i < marcadores.length; i++) {
-                    if (i == 0) {
-                        marker = new google.maps.Marker({
-                            position: new google.maps.LatLng(marcadores[i][1], marcadores[i][2]),
-                            icon: 'bootstrap/img/icono_gps.png',
-                            map: map,
-                            title: 'Inicio!!'
-                        });
-                    } else if (i == marcadores.length - 1) {
-                        marker = new google.maps.Marker({
-                            position: new google.maps.LatLng(marcadores[i][1], marcadores[i][2]),
-                            icon: 'bootstrap/img/icono_gps.png',
-                            map: map,
-                            title: 'Fin!!'
-                        });
+        $contadorDispositivos = 0;
+        while ($contadorDispositivos < count($coordenadasAll)) {
+            $contador = 0;
+            if (count($coordenadasAll[$contadorDispositivos])) {
+                while ($contador < count($coordenadasAll[$contadorDispositivos])) {
+                    $lon = $coordenadasAll[$contadorDispositivos][$contador]["lng"];
+                    $lat = $coordenadasAll[$contadorDispositivos][$contador]["lat"];
+                    $fecha = $coordenadasAll[$contadorDispositivos][$contador]["fecha"];
+                    $descripcion = $coordenadasAll[$contadorDispositivos][$contador]["descripcion"];
+                    if ($contador == 0) {
+                        echo ("addMarker($lat, $lon,'Primera posicion ' + '$fecha','icono_ubicaciones_inicio');");
+                    } else if ($contador == (count($coordenadasAll[$contadorDispositivos]) - 1)) {
+                        echo ("addMarker($lat, $lon,'Ultima posicion ' + '$fecha','icono_ubicaciones_fin');");
                     } else {
-                        marker = new google.maps.Marker({
-                            position: new google.maps.LatLng(marcadores[i][1], marcadores[i][2]),
-                            //icon: 'bootstrap/img/icono_gps.png',
-                            map: map
-                                    //title: 'Fin!!'
-                        });
+                        echo ("addMarker($lat, $lon, '$fecha','icono_ubicaciones');");
                     }
-                    google.maps.event.addListener(marker, 'click', (function (marker, i) {
-                        return function () {
-                            infowindow.setContent(marcadores[i][0]);
-                            infowindow.open(map, marker);
-                        }
-                    })(marker, i));
+                    $contador++;
                 }
+            } else {
+                echo ("alert(No se encontraron datos de: un dispositivo seleccionado)");
             }
-        </script>
+            $aux = json_encode($coordenadasAll[$contadorDispositivos]);
+            echo ("var arrayJS = $aux;" );
 
-        <script>
-            function metLineas(map, datosRuta) {
-                var lineas = new google.maps.Polyline({
-                    path: datosRuta,
-                    map: map,
-                    strokeColor: '#BB2000',
-                    strokeWeight: 4,
-                    strokeOpacity: 0.6,
-                    clickable: false
-                });
+            $color = '#' . $colorRand[rand(0, 15)] . $colorRand[rand(0, 15)] . $colorRand[rand(0, 15)] . $colorRand[rand(0, 15)] . $colorRand[rand(0, 15)] . $colorRand[rand(0, 15)];
+
+            echo ("var colorLin = '$color';" );
+
+            echo ("document.getElementById('distincion').innerHTML+= '  $descripcion  ' + '<span style=background-color:$color; width:>---</span>';");
+
+
+            echo ("metLineas(arrayJS, colorLin);" );
+//            echo ("metLineas(arrayJS);" );
+            $contadorDispositivos++;
+        }
+    }
+}
+?>
+
             }
         </script>
 

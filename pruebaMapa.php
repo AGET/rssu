@@ -144,6 +144,165 @@ if ($result = $mysqli->query($sql)) {
                 document.write("<br>" + arrayJS[i]["lat"] + " - " + arrayJS[i]["lng"]);
             }
         </script>-->
+
+
+        <!--Mapa inicial-->
+<!--        <script>
+            function initialize() {
+                // var myOptions = {
+                //     center: new google.maps.LatLng(13.570648483963033, 101.44157409667969),
+                //     zoom: 8,
+                //     mapTypeId: google.maps.MapTypeId.ROADMAP
+                // };
+                var map = new google.maps.Map(document.getElementById('map'), {
+                    center: {
+                        lat: -34.397,
+                        lng: 150.644
+                    },
+                    zoom: 15
+                });
+                var infoWindow = new google.maps.InfoWindow({
+                    map: map
+                });
+                // Try HTML5 geolocation.
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function (position) {
+                        var pos = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        infoWindow.setPosition(pos);
+                        infoWindow.setContent('Location Actual');
+                        map.setCenter(pos);
+                    }, function () {
+                        handleLocationError(true, infoWindow, map.getCenter());
+                    });
+                } else {
+                    // Browser doesn't support Geolocation
+                    handleLocationError(false, infoWindow, map.getCenter());
+                }
+                //var ruta = [         new google.maps.LatLng(13.6203, 101.09),         new google.maps.LatLng(14.6203, 101.29),         new google.maps.LatLng(15.0203, 102.09)     ];
+                var ruta = [
+                    {
+                        lat: 17.55658657,
+                        lng: -99.52336385
+                    },
+                    {
+                        lat: 17.554405,
+                        lng: -99.511949
+                    },
+                    {
+                        lat: 17.561514,
+                        lng: -99.513605
+                    },
+                    {
+                        lat: 17.563806,
+                        lng: -99.50144
+                    },
+                    {
+                        lat: 17.557831,
+                        lng: -99.496432
+                    },
+                    {
+                        lat: 17.550712,
+                        lng: -99.491649
+                    }
+                ];
+                var ruta2 = [
+                    {
+                        lat: 17.55658657,
+                        lng: -99.52336385
+                    },
+                    {
+                        lat: 17.554405,
+                        lng: -99.511949
+                    }
+                ];
+
+                var marcadores = [
+                    ['Informacion', 17.55658657, -99.52336385],
+                    ['Informacion', 17.554405, -99.511949],
+                    ['Informacion', 17.561514, -99.513605],
+                    ['Informacion', 17.563806, -99.50144],
+                    ['Informacion', 17.557831, -99.496432],
+                    ['Informacion', 17.550712, -99.491649]
+                ];
+                var lineas = new google.maps.Polyline({
+                    path: ruta,
+                    map: map,
+                    strokeColor: '#222000',
+                    strokeWeight: 4,
+                    strokeOpacity: 0.6,
+                    clickable: false
+                });
+
+                metLineas(map, ruta2);
+//                var lineas = new google.maps.Polyline({
+//                    path: ruta2,
+//                    map: map,
+//                    strokeColor: '#BB2000',
+//                    strokeWeight: 4,
+//                    strokeOpacity: 0.6,
+//                    clickable: false
+//                });
+
+                //var map = new google.maps.Map(document.getElementById("map_canvas"),             myOptions);
+                gozilla3 = new google.maps.Marker({
+                    //position: new google.maps.LatLng(13.6203, 101.09),
+                    position: new google.maps.LatLng(17.550712, -99.491649),
+                    //position: ruta,
+                    icon: 'bootstrap/img/icono_gps.png',
+                    map: map,
+                    title: 'GodZZilla!!'
+                });
+
+                var infowindow = new google.maps.InfoWindow();
+                var marker, i;
+                for (i = 0; i < marcadores.length; i++) {
+                    if (i == 0) {
+                        marker = new google.maps.Marker({
+                            position: new google.maps.LatLng(marcadores[i][1], marcadores[i][2]),
+                            icon: 'bootstrap/img/icono_gps.png',
+                            map: map,
+                            title: 'Inicio!!'
+                        });
+                    } else if (i == marcadores.length - 1) {
+                        marker = new google.maps.Marker({
+                            position: new google.maps.LatLng(marcadores[i][1], marcadores[i][2]),
+                            icon: 'bootstrap/img/icono_gps.png',
+                            map: map,
+                            title: 'Fin!!'
+                        });
+                    } else {
+                        marker = new google.maps.Marker({
+                            position: new google.maps.LatLng(marcadores[i][1], marcadores[i][2]),
+                            //icon: 'bootstrap/img/icono_gps.png',
+                            map: map
+                                    //title: 'Fin!!'
+                        });
+                    }
+                    google.maps.event.addListener(marker, 'click', (function (marker, i) {
+                        return function () {
+                            infowindow.setContent(marcadores[i][0]);
+                            infowindow.open(map, marker);
+                        }
+                    })(marker, i));
+                }
+            }
+        </script>
+            <script>
+            function metLineas(map, datosRuta) {
+                var lineas = new google.maps.Polyline({
+                    path: datosRuta,
+                    map: map,
+                    strokeColor: '#BB2000',
+                    strokeWeight: 4,
+                    strokeOpacity: 0.6,
+                    clickable: false
+                });
+            }
+        </script>-->
+
     </head>
 
     <!--<body onload="initMap()" style="margin:0px; border:0px; padding:0px;">-->
